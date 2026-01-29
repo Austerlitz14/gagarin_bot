@@ -92,13 +92,13 @@ async def main() -> web.Application:
 
         logging.info("Webhook set OK")
 
-    async def on_cleanup(app_: web.Application) -> None:
-        logging.info("Deleting webhook...")
-        await bot.delete_webhook(drop_pending_updates=False)
-        logging.info("Webhook deleted")
+# async def on_cleanup(app_: web.Application) -> None:
+#     logging.info("Deleting webhook...")
+#     await bot.delete_webhook(drop_pending_updates=False)
+#     logging.info("Webhook deleted")
 
     app.on_startup.append(on_startup)
-    app.on_cleanup.append(on_cleanup)
+ #   app.on_cleanup.append(on_cleanup)
 
     return app
 
