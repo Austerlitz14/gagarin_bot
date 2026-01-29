@@ -21,7 +21,7 @@ async def menu_photos(callback: CallbackQuery, json_handler):
     text = (
         "Выбери год выезда:"
         if years
-        else "Пока нет добавленных годов. Админ может добавить фото командой: /add_photo 2024"
+        else "Пока нет добавленных годов."
     )
     await callback.message.edit_text(text, reply_markup=years_kb(years))
     await callback.answer()
@@ -45,7 +45,7 @@ async def show_year_photos(callback: CallbackQuery, json_handler):
 
     if not photos:
         await callback.message.edit_text(
-            f"За {year} фото пока нет. Админ может добавить командой: /add_photo {year}",
+            f"За {year} фото пока нет.",
             reply_markup=year_actions_kb(year),
         )
         await callback.answer()

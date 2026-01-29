@@ -14,7 +14,7 @@ async def menu_links(callback: CallbackQuery, json_handler):
     links = await json_handler.get_common_links()
 
     if not links:
-        text = "Пока нет общих ссылок. Админ может добавить через /add_common_link Название | https://..."
+        text = "Пока нет общих ссылок."
         await callback.message.edit_text(h(text), reply_markup=back_to_menu_kb())
         await callback.answer()
         return

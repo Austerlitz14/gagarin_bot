@@ -13,7 +13,7 @@ def h(text: str) -> str:
 async def menu_history(callback: CallbackQuery, json_handler):
     text = await json_handler.get_history()
     if not text:
-        text = "История пока не заполнена. Админ может задать через /set_history ТЕКСТ_ИСТОРИИ"
+        text = "История пока не заполнена."
     await callback.message.edit_text(
         f"📜 <b>История</b>\n\n{h(text)}",
         reply_markup=back_to_menu_kb(),
