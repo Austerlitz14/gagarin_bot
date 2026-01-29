@@ -20,7 +20,8 @@ def _is_admin(message: Message, admin_ids: set[int]) -> bool:
 @router.message(Command("add_photo"))
 async def add_photo_cmd(message: Message, state: FSMContext, admin_ids, json_handler):
     if not _is_admin(message, admin_ids):
-        return await message.answer("⛔️ Только для админов.")
+        return
+
 
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2 or not parts[1].strip().isdigit():
@@ -56,7 +57,8 @@ async def add_photo_receive(message: Message, state: FSMContext, json_handler):
 @router.message(Command("set_info"))
 async def set_info_cmd(message: Message, admin_ids, json_handler):
     if not _is_admin(message, admin_ids):
-        return await message.answer("⛔️ Только для админов.")
+        return
+
 
     # /set_info 2024 текст...
     parts = message.text.split(maxsplit=2)
@@ -71,7 +73,8 @@ async def set_info_cmd(message: Message, admin_ids, json_handler):
 @router.message(Command("add_link"))
 async def add_link_cmd(message: Message, admin_ids, json_handler):
     if not _is_admin(message, admin_ids):
-        return await message.answer("⛔️ Только для админов.")
+        return
+    
 
     # /add_link 2024 Название | https://...
     parts = message.text.split(maxsplit=2)
@@ -93,7 +96,8 @@ async def add_link_cmd(message: Message, admin_ids, json_handler):
 @router.message(Command("set_history"))
 async def set_history_cmd(message: Message, admin_ids, json_handler):
     if not _is_admin(message, admin_ids):
-        return await message.answer("⛔️ Только для админов.")
+        return
+
 
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
@@ -105,7 +109,8 @@ async def set_history_cmd(message: Message, admin_ids, json_handler):
 @router.message(Command("add_common_link"))
 async def add_common_link_cmd(message: Message, admin_ids, json_handler):
     if not _is_admin(message, admin_ids):
-        return await message.answer("⛔️ Только для админов.")
+        return
+
 
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2 or "|" not in parts[1]:

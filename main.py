@@ -18,6 +18,7 @@ from handlers.photos import router as photos_router
 from handlers.history import router as history_router
 from handlers.links import router as links_router
 from handlers.admin import router as admin_router
+from handlers.admin_menu import router as admin_menu_router
 
 
 async def root(request: web.Request) -> web.Response:
@@ -41,6 +42,7 @@ def build_dispatcher(settings, json_handler: JsonHandler) -> Dispatcher:
     dp.include_router(history_router)
     dp.include_router(links_router)
     dp.include_router(admin_router)
+    dp.include_router(admin_menu_router)
     return dp
 
 
