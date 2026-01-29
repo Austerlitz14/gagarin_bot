@@ -1,0 +1,113 @@
+from __future__ import annotations
+from typing import Any, Optional
+from motor.motor_asyncio import AsyncIOMotorDatabase
+from pymongo import ReturnDocument
+
+class JsonHandler:
+    """
+    Хранит "контент как JSON", но в MongoDB (чтобы на бесплатном хостинге ничего не терялось).
+    Коллекции:
+      - years: документы по годам
+      - meta: история/общие ссылки
+    """
+
+    def __init__(self, db: AsyncIOMotorDatabase):
+        self.db = db
+        self.years = db["years"]
+        self.meta = db["meta"]
+
+    async def ensure_defaults(self) -> None:
+        # Минимальные дефолты
+        await self.meta.update_one(
+            {"_id": "history"},
+            {"$setOnInsert": {"text": "Пока тут пусто. Админ может задать через /set_history"}},
+            upsert=True,
+        )
+        await self.meta.update_one(
+            {"_id": "common_links"},
+            {"$setOnInsert": {"links": []}},
+            upsert=True,
+        )
+
+    # --------- Years / Trips ---------
+
+    async def get_years(self) -> list[int]:
+        cursor = self.years.find({}, {"_id": 1}).sort("_id", 1)
+        years: list[int] = []
+        async for doc in cursor:
+            years.append(int(doc["_id"]))
+        return years
+
+    async def get_trip(self, year: int) -> Optional[dict[str, Any]]:
+        return await self.years.find_one({"_id": int(year)})
+
+    async def get_trip_info(self, year: int) -> str:
+        doc = await self.get_trip(year)
+        if not doc:
+            return "Пока нет информации про этот год."
+        return doc.get("info", "Пока нет информации про этот год.")
+
+    async def get_photos(self, year: int) -> list[str]:
+        doc = await self.get_trip(year)
+        if not doc:
+            return []
+        return list(doc.get("photos", []))
+
+    async def get_links(self, year: int) -> list[dict[str, str]]:
+        doc = await self.get_trip(year)
+        if not doc:
+            return []
+        return list(doc.get("links", []))
+
+    async def upsert_trip(self, year: int, title: str | None = None) -> None:
+        update = {"$setOnInsert": {"_id": int(year), "photos": [], "links": [], "info": ""}}
+        if title:
+            update.setdefault("$set", {})["title"] = title
+        await self.years.update_one({"_id": int(year)}, update, upsert=True)
+
+    async def add_photo(self, year: int, file_id: str) -> int:
+        doc = await self.years.find_one_and_update(
+            {"_id": int(year)},
+            {"$setOnInsert": {"photos": [], "links": [], "info": ""}, "$push": {"photos": file_id}},
+            upsert=True,
+            return_document=ReturnDocument.AFTER,
+        )
+        return len(doc.get("photos", [])) if doc else 0
+
+    async def set_trip_info(self, year: int, info: str) -> None:
+        await self.years.update_one(
+            {"_id": int(year)},
+            {"$setOnInsert": {"photos": [], "links": []}, "$set": {"info": info}},
+            upsert=True,
+        )
+
+    async def add_link(self, year: int, title: str, url: str) -> int:
+        doc = await self.years.find_one_and_update(
+            {"_id": int(year)},
+            {"$setOnInsert": {"photos": [], "links": [], "info": ""}, "$push": {"links": {"title": title, "url": url}}},
+            upsert=True,
+            return_document=ReturnDocument.AFTER,
+        )
+        return len(doc.get("links", [])) if doc else 0
+
+    # --------- Meta ---------
+
+    async def get_history(self) -> str:
+        doc = await self.meta.find_one({"_id": "history"})
+        return (doc or {}).get("text", "")
+
+    async def set_history(self, text: str) -> None:
+        await self.meta.update_one({"_id": "history"}, {"$set": {"text": text}}, upsert=True)
+
+    async def get_common_links(self) -> list[dict[str, str]]:
+        doc = await self.meta.find_one({"_id": "common_links"})
+        return list((doc or {}).get("links", []))
+
+    async def add_common_link(self, title: str, url: str) -> int:
+        doc = await self.meta.find_one_and_update(
+            {"_id": "common_links"},
+            {"$setOnInsert": {"links": []}, "$push": {"links": {"title": title, "url": url}}},
+            upsert=True,
+            return_document=ReturnDocument.AFTER,
+        )
+        return len(doc.get("links", [])) if doc else 0

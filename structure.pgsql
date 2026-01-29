@@ -1,0 +1,17 @@
+gagarin_bot/
+  main.py
+  config.py
+  requirements.txt
+  .env.example
+  keyboards.py
+  storage/
+    __init__.py
+    mongo.py
+    json_handler.py
+  handlers/
+    __init__.py
+    start.py
+    photos.py
+    history.py
+    links.py
+    admin.py
