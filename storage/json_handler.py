@@ -20,7 +20,7 @@ class JsonHandler:
         # Минимальные дефолты
         await self.meta.update_one(
             {"_id": "history"},
-            {"$setOnInsert": {"text": "Пока тут пусто. Админ может задать через /set_history"}},
+            {"$setOnInsert": {"text": "Пока тут пусто."}},
             upsert=True,
         )
         await self.meta.update_one(
@@ -111,3 +111,14 @@ class JsonHandler:
             return_document=ReturnDocument.AFTER,
         )
         return len(doc.get("links", [])) if doc else 0
+    
+    async def set_welcome_photo(self, file_id: str) -> None:
+        await self.meta.update_one(
+            {"_id": "welcome_photo"},
+            {"$set": {"file_id": file_id}},
+            upsert=True,
+        )
+
+    async def get_welcome_photo(self) -> str | None:
+        doc = await self.meta.find_one({"_id": "welcome_photo"})
+        return (doc or {}).get("file_id")

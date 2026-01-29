@@ -122,3 +122,25 @@ async def add_common_link_cmd(message: Message, admin_ids, json_handler):
     title, url = [x.strip() for x in parts[1].split("|", maxsplit=1)]
     n = await json_handler.add_common_link(title, url)
     await message.answer(f"Общая ссылка добавлена. Всего: {n}")
+
+@router.message(Command("set_welcome_photo"), F.photo)
+async def set_welcome_photo(message: Message, admin_ids, json_handler):
+    if not _is_admin(message, admin_ids):
+        return  # тихо игнорируем неадминов
+
+    # берём самое большое фото
+    file_id = message.photo[-1].file_id
+    await json_handler.set_welcome_photo(file_id)
+
+    await message.answer("Приветственная фотография установлена ✅")
+
+
+@router.message(Command("set_welcome_photo"))
+async def set_welcome_photo_help(message: Message, admin_ids):
+    if not _is_admin(message, admin_ids):
+        return  # тихо игнорируем неадминов
+
+    await message.answer(
+        "Отправь команду <b>/set_welcome_photo</b> вместе с фотографией.\n"
+        "Фото нужно прикрепить к сообщению."
+    )
