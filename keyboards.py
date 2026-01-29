@@ -47,6 +47,7 @@ def admin_menu_kb():
     kb.button(text="🔗 Добавить ссылку года", callback_data="admin:add_link")
     kb.button(text="👑 Обновить историю", callback_data="admin:set_history")
     kb.button(text="🔗 Добавить общую ссылку", callback_data="admin:add_common_link")
+    kb.button(text="📦 Хранилище", callback_data="admin:storage")
     kb.button(text="⬅️ В меню", callback_data="nav:menu")
     kb.adjust(1, 1, 1, 1, 1, 1)
     return kb.as_markup()

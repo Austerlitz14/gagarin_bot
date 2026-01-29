@@ -21,12 +21,41 @@ async def open_admin_menu(callback: CallbackQuery, admin_ids):
     await callback.answer()
 
 @router.callback_query(lambda c: (c.data or "").startswith("admin:"))
-async def admin_action_help(callback: CallbackQuery, admin_ids):
+async def admin_action_help(callback: CallbackQuery, admin_ids, json_handler):
     if not _is_admin_cb(callback, admin_ids):
         await callback.answer()
         return
 
     action = callback.data.split(":", 1)[1]
+    if action == "storage":
+        stats = await json_handler.get_db_stats()
+
+        # Байт → МБ
+        def mb(x: float) -> float:
+            return x / (1024 * 1024)
+
+        data_size = float(stats.get("dataSize", 0))
+        storage_size = float(stats.get("storageSize", 0))
+        index_size = float(stats.get("indexSize", 0))
+
+        # Для Atlas Free обычно ориентируются на 512 MB
+        limit_mb = 512.0
+        used_mb = mb(storage_size)
+        remaining_mb = max(0.0, limit_mb - used_mb)
+
+        text = (
+            "📦 <b>Хранилище (MongoDB)</b>\n\n"
+            f"• Данные: <b>{mb(data_size):.1f} MB</b>\n"
+            f"• Индексы: <b>{mb(index_size):.1f} MB</b>\n"
+            f"• Всего (с индексами): <b>{used_mb:.1f} MB</b>\n\n"
+            f"≈ Осталось: <b>{remaining_mb:.1f} MB</b> (оценка из лимита 512 MB)\n\n"
+            "ℹ️ Фото хранятся в Telegram, в БД сохраняются только file_id и тексты."
+        )
+
+        await callback.message.edit_text(text, reply_markup=back_to_menu_kb())
+        await callback.answer()
+        return
+
 
     helps = {
         "add_photo": (

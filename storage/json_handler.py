@@ -122,3 +122,7 @@ class JsonHandler:
     async def get_welcome_photo(self) -> str | None:
         doc = await self.meta.find_one({"_id": "welcome_photo"})
         return (doc or {}).get("file_id")
+    
+    async def get_db_stats(self) -> dict:
+        # MongoDB dbStats: размеры в байтах
+        return await self.db.command("dbStats")
