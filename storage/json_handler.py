@@ -66,13 +66,24 @@ class JsonHandler:
         await self.years.update_one({"_id": int(year)}, update, upsert=True)
 
     async def add_photo(self, year: int, file_id: str) -> int:
-        doc = await self.years.find_one_and_update(
-            {"_id": int(year)},
-            {"$setOnInsert": {"photos": [], "links": [], "info": ""}, "$push": {"photos": file_id}},
+        year = int(year)
+
+        # 1) гарантируем, что документ существует (и нужные поля есть)
+        await self.years.update_one(
+            {"_id": year},
+            {"$setOnInsert": {"photos": [], "links": [], "info": ""}},
             upsert=True,
-            return_document=ReturnDocument.AFTER,
         )
-        return len(doc.get("photos", [])) if doc else 0
+
+        # 2) добавляем фото
+        await self.years.update_one(
+            {"_id": year},
+            {"$push": {"photos": file_id}},
+        )
+
+        # 3) возвращаем текущее количество
+        doc = await self.years.find_one({"_id": year}, {"photos": 1})
+        return len((doc or {}).get("photos", []))
 
     async def set_trip_info(self, year: int, info: str) -> None:
         await self.years.update_one(
@@ -82,13 +93,22 @@ class JsonHandler:
         )
 
     async def add_link(self, year: int, title: str, url: str) -> int:
-        doc = await self.years.find_one_and_update(
-            {"_id": int(year)},
-            {"$setOnInsert": {"photos": [], "links": [], "info": ""}, "$push": {"links": {"title": title, "url": url}}},
+        year = int(year)
+
+        await self.years.update_one(
+            {"_id": year},
+            {"$setOnInsert": {"photos": [], "links": [], "info": ""}},
             upsert=True,
-            return_document=ReturnDocument.AFTER,
         )
-        return len(doc.get("links", [])) if doc else 0
+
+        await self.years.update_one(
+            {"_id": year},
+            {"$push": {"links": {"title": title, "url": url}}},
+        )
+
+        doc = await self.years.find_one({"_id": year}, {"links": 1})
+        return len((doc or {}).get("links", []))
+
 
     # --------- Meta ---------
 
