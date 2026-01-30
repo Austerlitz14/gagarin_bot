@@ -27,10 +27,23 @@ async def admin_action_help(callback: CallbackQuery, admin_ids, json_handler):
         return
 
     action = callback.data.split(":", 1)[1]
+        # --- special actions that need logic / DB ---
+    if action == "welcome_photo":
+        text = (
+            "🖼 <b>Приветственная фотография</b>\n\n"
+            "Эта фотография показывается пользователю сразу после /start.\n\n"
+            "Как установить:\n"
+            "1) Отправь фото боту\n"
+            "2) В подписи к фото напиши: <code>/set_welcome_photo</code>\n\n"
+            "Готово — фото сохранится в базе."
+        )
+        await callback.message.edit_text(text, reply_markup=back_to_menu_kb())
+        await callback.answer()
+        return
+
     if action == "storage":
         stats = await json_handler.get_db_stats()
 
-        # Байт → МБ
         def mb(x: float) -> float:
             return x / (1024 * 1024)
 
@@ -38,8 +51,7 @@ async def admin_action_help(callback: CallbackQuery, admin_ids, json_handler):
         storage_size = float(stats.get("storageSize", 0))
         index_size = float(stats.get("indexSize", 0))
 
-        # Для Atlas Free обычно ориентируются на 512 MB
-        limit_mb = 512.0
+        limit_mb = 512.0  # Atlas M0 обычно 512MB
         used_mb = mb(storage_size)
         remaining_mb = max(0.0, limit_mb - used_mb)
 
@@ -48,13 +60,13 @@ async def admin_action_help(callback: CallbackQuery, admin_ids, json_handler):
             f"• Данные: <b>{mb(data_size):.1f} MB</b>\n"
             f"• Индексы: <b>{mb(index_size):.1f} MB</b>\n"
             f"• Всего (с индексами): <b>{used_mb:.1f} MB</b>\n\n"
-            f"≈ Осталось: <b>{remaining_mb:.1f} MB</b> (оценка из лимита 512 MB)\n\n"
+            f"≈ Осталось: <b>{remaining_mb:.1f} MB</b> (оценка из 512 MB)\n\n"
             "ℹ️ Фото хранятся в Telegram, в БД сохраняются только file_id и тексты."
         )
-
         await callback.message.edit_text(text, reply_markup=back_to_menu_kb())
         await callback.answer()
         return
+
 
 
     helps = {

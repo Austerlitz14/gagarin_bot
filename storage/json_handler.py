@@ -110,6 +110,7 @@ class JsonHandler:
         return len((doc or {}).get("links", []))
 
 
+
     # --------- Meta ---------
 
     async def get_history(self) -> str:
@@ -124,13 +125,20 @@ class JsonHandler:
         return list((doc or {}).get("links", []))
 
     async def add_common_link(self, title: str, url: str) -> int:
-        doc = await self.meta.find_one_and_update(
+        await self.meta.update_one(
             {"_id": "common_links"},
-            {"$setOnInsert": {"links": []}, "$push": {"links": {"title": title, "url": url}}},
+            {"$setOnInsert": {"links": []}},
             upsert=True,
-            return_document=ReturnDocument.AFTER,
         )
-        return len(doc.get("links", [])) if doc else 0
+
+        await self.meta.update_one(
+            {"_id": "common_links"},
+            {"$push": {"links": {"title": title, "url": url}}},
+        )
+
+        doc = await self.meta.find_one({"_id": "common_links"}, {"links": 1})
+        return len((doc or {}).get("links", []))
+
     
     async def set_welcome_photo(self, file_id: str) -> None:
         await self.meta.update_one(
@@ -144,5 +152,4 @@ class JsonHandler:
         return (doc or {}).get("file_id")
     
     async def get_db_stats(self) -> dict:
-        # MongoDB dbStats: размеры в байтах
         return await self.db.command("dbStats")

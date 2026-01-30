@@ -42,6 +42,7 @@ def year_actions_kb(year: int):
 
 def admin_menu_kb():
     kb = InlineKeyboardBuilder()
+    kb.button(text="🖼 Приветственная фотография", callback_data="admin:welcome_photo")
     kb.button(text="🖼 Добавить фото за год", callback_data="admin:add_photo")
     kb.button(text="ℹ️ Задать инфо года", callback_data="admin:set_info")
     kb.button(text="🔗 Добавить ссылку года", callback_data="admin:add_link")
